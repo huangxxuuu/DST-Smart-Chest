@@ -54,3 +54,9 @@ function LXautocollectitems:SetItems()
 end
 
 -- 功能2：收集物品
+
+
+
+
+
+return LXautocollectitems
