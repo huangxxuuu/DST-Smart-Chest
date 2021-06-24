@@ -1,4 +1,4 @@
-name = "成熟的箱子"
+name = "成熟的箱子2"
 description = "你已经是个成熟的箱子了，要学会自己捡东西\n现在不需要打开箱子，只要在箱子附近把物品丢弃就可自动收进去\n第一次做mod，有bug反馈的话我会尽快修复。\n可以选择是否收集战利品和周期性掉落物品\nUse for treasure chest and dragonfly chest.\nYou're a mature chest. You need to learn to pick up things by yourself.\nNow you don't need to open the chest.You just need to abandon  the items near the chest to automatically collect them.\nYou can choose whether to collect loot and periodic dropped items"
 author = "little_xuuu"
 version = "1.9.10"
@@ -16,6 +16,16 @@ end
 
 configuration_options =
 {
+	{
+        name = "iscollectone",
+        label = "每个箱子是否只收集一种",
+		hover = "Does each box collect only one",
+        options = {
+			{description = "true", data = 1},
+			{description = "false", data = 0},
+		},
+		default = 1,
+    },
 	{
         name = "minisign_dist",
         label = "检测小木牌半径",
