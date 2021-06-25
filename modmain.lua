@@ -170,6 +170,9 @@ local function changeChest(inst) -- ACI == LXautocollectitems
 	end
 end
 AddPrefabPostInit("treasurechest", changeChest)
+AddPrefabPostInit("icebox", changeChest)
+AddPrefabPostInit("saltbox", changeChest)
+AddPrefabPostInit("dragonflychest", changeChest)
 
 -- 改变小木牌的部分（小木牌画，挖，加载，种的时候，设置箱子）
 local function changeMinisign(inst)
@@ -289,3 +292,20 @@ local function onbeargerCollect(inst)
 	end
 end
 AddPrefabPostInit("bearger",onbeargerCollect)
+
+-- 功能3. 打补丁
+
+-- 箱子敲毁时，掉落物可能消失的问题
+local function changeChestHammer(inst)
+	if inst and inst.components and inst.components.workable then
+		local old_onfinish = inst.components.workable.onfinish
+		inst.components.workable:SetOnFinishCallback(function(inst2, worker)
+			inst2.components.lxautocollectitems.items = {}
+			old_onfinish(inst2, worker)
+		end)
+	end
+end
+AddPrefabPostInit("treasurechest", changeChestHammer)
+AddPrefabPostInit("icebox", changeChestHammer)
+AddPrefabPostInit("saltbox", changeChestHammer)
+AddPrefabPostInit("dragonflychest", changeChestHammer)
