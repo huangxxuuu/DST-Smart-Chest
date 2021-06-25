@@ -1,8 +1,8 @@
 
-local modname = KnownModIndex:GetModActualName(" 成熟的箱子2 - Local")
+local name = "Smart Chest"
+local modname = KnownModIndex:GetModActualName(" " .. name .. " - Local")
 local minisigndist = GetModConfigData("minisign_dist", modname)
 local iscollectone = GetModConfigData("iscollectone", modname)
-local collectdist = GetModConfigData("collect_items_dist", modname)
 
 local LXautocollectitems = Class(function(self, inst)
 	self.inst = inst
