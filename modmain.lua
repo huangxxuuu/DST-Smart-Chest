@@ -189,3 +189,40 @@ end
 AddComponentPostInit("inventory",onDropCollect)
 
 -- 战利品掉落时，收集。
+local function onLootdropCollect(inst)
+	local old_SpawnLootPrefab = inst.SpawnLootPrefab
+	function inst:SpawnLootPrefab(lootprefab, pt, linked_skinname, skin_id, userid)
+		print("[SpawnLootPrefab] enter")
+		local dropped = old_SpawnLootPrefab(self, lootprefab, pt, linked_skinname, skin_id, userid)
+		collect(dropped)
+		print("[SpawnLootPrefab] exit")
+		return dropped
+	end
+end
+--LootDropper:SpawnLootPrefab
+AddComponentPostInit("lootdropper",onLootdropCollect)
+
+-- 周期性掉落物品，收集。
+local function onPerioddropCOllect(inst)
+	--local old_setonspawnfn = inst.SetOnSpawnFn
+	function inst:SetOnSpawnFn(fn)
+		inst.onspawn = function(inst1, inst2)
+			fn(inst1, inst2)
+			collect(inst2)
+		end
+	end
+end
+AddComponentPostInit("periodicspawner",onPerioddropCOllect)
+
+-- 熊的毛簇，收集。
+local function onbeargerCollect(inst)
+	local old_DoSingleShed = inst.components.shedder.DoSingleShed
+	function inst.components.shedder:DoSingleShed()
+		local item = old_DoSingleShed(self)
+		if item ~= nil then
+			collect(item)
+		end
+		return item
+	end
+end
+AddPrefabPostInit("bearger",onbeargerCollect)
