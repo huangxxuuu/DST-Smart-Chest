@@ -193,7 +193,6 @@ local function moveToContainer(inst, item) -- inst 箱子.components.container
             item.components.inventoryitem:OnDropped(true)
         end
     end]]--
-	
 	print("[moveToContainer]197")
     return item
 end

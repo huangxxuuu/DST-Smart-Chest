@@ -141,32 +141,51 @@ AddPrefabPostInit("treasurechest", ContainerAddACI)
 
 
 -- 功能2. 收集物品
--- 玩家触发drop动作时，收集
+local function collect(dropped)
+	if dropped ~= nil then
+		local snumb = nil
+		if dropped and dropped.components and dropped.components.stackable then
+			snumb = dropped.components.stackable.stacksize
+		end
+		-- 搜索周围的箱子
+		print("[collect] search Tag lxautocollectitems")
+		local x, y, z = dropped.Transform:GetWorldPosition()
+		local ents = _G.TheSim:FindEntities(x, y, z, collectdist, {"lxautocollectitems"})
+		local name = dropped.drawnameoverride or dropped:GetBasicDisplayName()
+		for k, v in pairs(ents) do
+			if dropped ~= nil then
+				if v and v.components and v.components.lxautocollectitems then
+					dropped = v.components.lxautocollectitems:onCollectItems(dropped, name)
+				end
+			else
+				break
+			end
+		end
+		if dropped == nil then
+			local collectanim = _G.SpawnPrefab("sand_puff") --消失的动画
+			collectanim.Transform:SetPosition(x, y, z)
+			collectanim.Transform:SetScale(1,1,1)
+		else
+			if dropped and dropped.components and dropped.components.stackable and dropped.components.stackable.stacksize < snumb then
+				local collectanim = _G.SpawnPrefab("sand_puff") --消失的动画
+				collectanim.Transform:SetPosition(x, y, z)
+				collectanim.Transform:SetScale(1,1,1)
+			end
+		end
+	end
+end
+
+-- 玩家触发drop动作时，收集。(inventory:DropItem)
 local function onDropCollect(inst)
 	local old_DropItem = inst.DropItem
 	function inst:DropItem(item, wholestack, randomdir, pos)
 		print("[DropItem] enter")
 		local dropped = old_DropItem(self, item, wholestack, randomdir, pos)
-		local res = dropped
-		if dropped ~= nil then
-			-- 搜索周围的箱子
-			print("search Tag lxautocollectitems")
-			local x, y, z = dropped.Transform:GetWorldPosition()
-			local ents = _G.TheSim:FindEntities(x, y, z, collectdist, {"lxautocollectitems"})
-			local name = dropped.drawnameoverride or dropped:GetBasicDisplayName()
-			for k, v in pairs(ents) do
-				if dropped ~= nil then
-					if v and v.components and v.components.lxautocollectitems then
-						dropped = v.components.lxautocollectitems:onCollectItems(dropped, name)
-					end
-				else
-					break
-				end
-				
-			end
-		end
+		collect(dropped)
 		print("[DropItem] exit")
-		return res
+		return dropped
 	end
 end
 AddComponentPostInit("inventory",onDropCollect)
+
+-- 战利品掉落时，收集。
