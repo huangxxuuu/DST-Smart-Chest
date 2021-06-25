@@ -125,12 +125,20 @@ AddPrefabPostInit("minisign_drawn", MinisignAddItemname)
 ]]--
 
 -- 功能1. 设置要收集的物品
--- 改变箱子的部分
-local function onChestBuild(inst)
-	--print("[master chest] onbuilt")
-	inst.components.lxautocollectitems:SetItems()
+-- 箱子主动收集附近的物品
+local function collectChest2Item(chest)
+	if chest and chest.components and chest.components.lxautocollectitems then
+		local x, y, z = chest.Transform:GetWorldPosition()
+		-- 要求物品一定是 inventoryitem。一定不能是
+		local items = _G.TheSim:FindEntities(x, y, z, collectdist, { "_inventoryitem" }, { "INLIMBO", "NOCLICK", "catchable", "fire" })
+		for k, v in pairs(items) do
+			local name = v.drawnameoverride or v:GetBasicDisplayName()
+			chest.components.lxautocollectitems:onCollectItems(v, name)
+		end
+	end
 end
 
+-- 改变箱子的部分
 local function changeChest(inst) -- ACI == LXautocollectitems
 	-- 给箱子添加 LXautocollectitems 这个component,并且箱子打开时设置要收集的items
 	if inst and inst.components and inst.components.container then
@@ -141,6 +149,7 @@ local function changeChest(inst) -- ACI == LXautocollectitems
 		inst.components.container.onopenfn = function(inst2)
 			--inst2.components.lxautocollectitems:SetItems()
 			old_open(inst2)
+			collectChest2Item(inst2)
 		end
 
 		local old_onload = inst.OnLoad
@@ -153,6 +162,10 @@ local function changeChest(inst) -- ACI == LXautocollectitems
 			end
 		end
 
+		local function onChestBuild(inst)
+			--print("[master chest] onbuilt")
+			inst.components.lxautocollectitems:SetItems()
+		end
 		inst:ListenForEvent("onbuilt", onChestBuild)
 	end
 end
@@ -207,12 +220,8 @@ AddPrefabPostInit("minisign_drawn", changeMinisign) -- 种
 
 
 -- 功能2. 收集物品
-local function collect(dropped)
+local function collectItem2Chest(dropped)
 	if dropped ~= nil then
-		local snumb = nil
-		if dropped and dropped.components and dropped.components.stackable then
-			snumb = dropped.components.stackable.stacksize
-		end
 		-- 搜索周围的箱子
 		print("[collect] search Tag lxautocollectitems")
 		local x, y, z = dropped.Transform:GetWorldPosition()
@@ -227,17 +236,6 @@ local function collect(dropped)
 				break
 			end
 		end
-		if dropped == nil then
-			local collectanim = _G.SpawnPrefab("sand_puff") --消失的动画
-			collectanim.Transform:SetPosition(x, y, z)
-			collectanim.Transform:SetScale(1,1,1)
-		else
-			if dropped and dropped.components and dropped.components.stackable and dropped.components.stackable.stacksize < snumb then
-				local collectanim = _G.SpawnPrefab("sand_puff") --消失的动画
-				collectanim.Transform:SetPosition(x, y, z)
-				collectanim.Transform:SetScale(1,1,1)
-			end
-		end
 	end
 end
 
@@ -247,7 +245,7 @@ local function onDropCollect(inst)
 	function inst:DropItem(item, wholestack, randomdir, pos)
 		print("[DropItem] enter")
 		local dropped = old_DropItem(self, item, wholestack, randomdir, pos)
-		collect(dropped)
+		collectItem2Chest(dropped)
 		print("[DropItem] exit")
 		return dropped
 	end
@@ -260,7 +258,7 @@ local function onLootdropCollect(inst)
 	function inst:SpawnLootPrefab(lootprefab, pt, linked_skinname, skin_id, userid)
 		print("[SpawnLootPrefab] enter")
 		local dropped = old_SpawnLootPrefab(self, lootprefab, pt, linked_skinname, skin_id, userid)
-		collect(dropped)
+		collectItem2Chest(dropped)
 		print("[SpawnLootPrefab] exit")
 		return dropped
 	end
@@ -273,7 +271,7 @@ local function onPerioddropCOllect(inst)
 	function inst:SetOnSpawnFn(fn)
 		inst.onspawn = function(inst1, inst2)
 			fn(inst1, inst2)
-			collect(inst2)
+			collectItem2Chest(inst2)
 		end
 	end
 end
@@ -285,7 +283,7 @@ local function onbeargerCollect(inst)
 	function inst.components.shedder:DoSingleShed()
 		local item = old_DoSingleShed(self)
 		if item ~= nil then
-			collect(item)
+			collectItem2Chest(item)
 		end
 		return item
 	end

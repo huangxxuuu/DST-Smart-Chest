@@ -204,27 +204,30 @@ function LXautocollectitems:onCollectItems(item, itemname)
 		print("item == nil")
         return nil
     end
-    local x, y, z = item.Transform:GetWorldPosition()
-	if self.x == nil then
-		self.x, self.y, self.z = self.inst.Transform:GetWorldPosition()
-	end
-	local dx = self.x - x
-	local dy = self.y - y
-	local dz = self.z - z
-    local dist = dx*dx + dy*dy + dz*dz
-	print("dist=" .. dist)
-	print("collectdist*collectdist = " .. collectdist*collectdist)
-    if dist <= collectdist*collectdist then -- 判断距离符合
-		print("dist OK")
-		if isCanCollect(self.items, itemname) then --判断可以收集
-			print("isCanCollect OK")
-			-- 因为这个现成的GiveItem没有返回值，所以要重写
-			-- self.inst.components.container:GiveItem(item)
-			item = moveToContainer(self.inst.components.container, item)
-			if item and item.components and item.components.stackable then
-				print("" .. item.prefab .. " number is " .. item.components.stackable.stacksize)
-			else
-				print("item = 0")
+	if isCanCollect(self.items, itemname) then --判断可以收集
+		print("isCanCollect OK")
+		-- 因为这个现成的GiveItem没有返回值，所以要重写
+		-- self.inst.components.container:GiveItem(item)
+		local snumb
+		if item and item.components and item.components.stackable then
+			snumb = item.components.stackable.stacksize
+		end
+		local x, y, z = item.Transform:GetWorldPosition()
+		item = moveToContainer(self.inst.components.container, item)
+		if item and item.components and item.components.stackable then
+			print("" .. item.prefab .. " number is " .. item.components.stackable.stacksize)
+		else
+			print("item = 0")
+		end
+		if item == nil then
+			local collectanim = SpawnPrefab("sand_puff") --消失的动画
+			collectanim.Transform:SetPosition(x, y, z)
+			collectanim.Transform:SetScale(1,1,1)
+		else
+			if item and item.components and item.components.stackable and item.components.stackable.stacksize < snumb then
+				local collectanim = SpawnPrefab("sand_puff") --消失的动画
+				collectanim.Transform:SetPosition(x, y, z)
+				collectanim.Transform:SetScale(1,1,1)
 			end
 		end
 	end
