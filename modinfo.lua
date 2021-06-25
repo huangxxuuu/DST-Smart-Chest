@@ -156,9 +156,9 @@ dst_compatible = true
 icon_atlas = "modicon.xml"
 icon = "modicon.tex"
 folder_name = folder_name or "workshop-"
-if not folder_name:find("workshop-") then
+--[[if not folder_name:find("workshop-") then
   name = " "..name.." - Local"
-end
+end]]--
 
 -- Refer to other mod designs 增加标题
 local function ModOptions(title, hover)

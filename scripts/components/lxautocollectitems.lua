@@ -1,6 +1,6 @@
 
 local name = "Smart Chest"
-local modname = KnownModIndex:GetModActualName(" " .. name .. " - Local")
+local modname = KnownModIndex:GetModActualName(name)
 local minisigndist = GetModConfigData("minisign_dist", modname)
 local iscollectone = GetModConfigData("iscollectone", modname)
 
