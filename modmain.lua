@@ -225,7 +225,7 @@ local function collectItem2Chest(dropped)
 		-- 搜索周围的箱子
 		print("[collect] search Tag lxautocollectitems")
 		local x, y, z = dropped.Transform:GetWorldPosition()
-		local ents = _G.TheSim:FindEntities(x, y, z, collectdist, {"lxautocollectitems"})
+		local ents = _G.TheSim:FindEntities(x, y, z, collectdist, {"lxautocollectitems"}, {"burnt"})
 		local name = dropped.drawnameoverride or dropped:GetBasicDisplayName()
 		for k, v in pairs(ents) do
 			if dropped ~= nil then

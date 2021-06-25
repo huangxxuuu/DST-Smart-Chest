@@ -204,6 +204,9 @@ function LXautocollectitems:onCollectItems(item, itemname)
 		print("item == nil")
         return nil
     end
+	if (self.inst.components and self.inst.components.burnable ~= nil and self.inst.components.burnable:IsBurning()) or self.inst:HasTag("burnt") then -- 正在燃烧和燃烧结束不能收集
+		return item
+	end
 	if isCanCollect(self.items, itemname) then --判断可以收集
 		print("isCanCollect OK")
 		-- 因为这个现成的GiveItem没有返回值，所以要重写
