@@ -5,5 +5,5 @@
         根据设置选项中的内容来决定是只收集一种还是好多种。
 功能2：收集物品
         以下几种情况时触发收集物品功能
-        1. 玩家丢弃（pick up）物品时
+        1. 玩家丢弃（actions.lua drop）物品时 inst:ListenForEvent("dropitem", function)
         2. 生物死亡掉落物品时

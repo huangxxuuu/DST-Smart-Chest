@@ -13,7 +13,7 @@ local isshowanim = GetModConfigData("is_show_anim")
 local TheNet = _G.TheNet
 local IsServer = TheNet:GetIsServer() or TheNet:IsDedicated()
 
--- 获取prefabs名称的函数
+-- 显示信息
 local function showInfo()
 	local target = _G.TheInput:GetWorldEntityUnderMouse()
 	if target ~= nil then
@@ -124,10 +124,12 @@ AddPrefabPostInit("minisign_item", MinisignAddItemname)
 AddPrefabPostInit("minisign_drawn", MinisignAddItemname)
 ]]--
 
+-- 功能1. 设置要收集的物品
 -- 给箱子添加 LXautocollectitems 这个component,并且箱子打开时设置要收集的items
 local function ContainerAddACI(inst) -- ACI == LXautocollectitems
 	if inst and inst.components and inst.components.container then
 		inst:AddComponent("lxautocollectitems")
+		inst:AddTag("lxautocollectitems") -- 给对应箱子添加Tag
 		local old_open = inst.components.container.onopenfn
 		inst.components.container.onopenfn = function(inst2)
 			inst2.components.lxautocollectitems:SetItems()
@@ -136,3 +138,33 @@ local function ContainerAddACI(inst) -- ACI == LXautocollectitems
 	end
 end
 AddPrefabPostInit("treasurechest", ContainerAddACI)
+
+
+-- 功能2. 收集物品
+-- 玩家触发drop动作时，收集
+local function onDropCollect(inst)
+	local old_DropItem = inst.DropItem
+	function inst:DropItem(item, wholestack, randomdir, pos)
+		print("[DropItem] enter")
+		local dropped = old_DropItem(self, item, wholestack, randomdir, pos)
+		if dropped ~= nil then
+			-- 搜索周围的箱子
+			print("search Tag lxautocollectitems")
+			local x, y, z = dropped.Transform:GetWorldPosition()
+			local ents = _G.TheSim:FindEntities(x, y, z, collectdist, {"lxautocollectitems"})
+			local name = dropped.drawnameoverride or dropped:GetBasicDisplayName()
+			for k, v in pairs(ents) do
+				if dropped ~= nil then
+					if v and v.components and v.components.lxautocollectitems then
+						dropped = v.components.lxautocollectitems:onCollectItems(dropped, name)
+					end
+				else
+					break
+				end
+				
+			end
+		end
+		print("[DropItem] exit")
+	end
+end
+AddComponentPostInit("inventory",onDropCollect)
