@@ -147,6 +147,7 @@ local function onDropCollect(inst)
 	function inst:DropItem(item, wholestack, randomdir, pos)
 		print("[DropItem] enter")
 		local dropped = old_DropItem(self, item, wholestack, randomdir, pos)
+		local res = dropped
 		if dropped ~= nil then
 			-- 搜索周围的箱子
 			print("search Tag lxautocollectitems")
@@ -165,6 +166,7 @@ local function onDropCollect(inst)
 			end
 		end
 		print("[DropItem] exit")
+		return res
 	end
 end
 AddComponentPostInit("inventory",onDropCollect)
