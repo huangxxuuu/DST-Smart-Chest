@@ -142,9 +142,11 @@ end
 local function changeChest(inst) -- ACI == LXautocollectitems
 	-- 给箱子添加 LXautocollectitems 这个component,并且箱子打开时设置要收集的items
 	if inst and inst.components and inst.components.container then
+		-- 添加 lxautocollectitems 组件，和tag
 		inst:AddComponent("lxautocollectitems")
 		inst:AddTag("lxautocollectitems") -- 给对应箱子添加Tag
-		--inst.components.lxautocollectitems:SetItems()
+
+		-- 箱子打开时收集物品
 		local old_open = inst.components.container.onopenfn
 		inst.components.container.onopenfn = function(inst2)
 			--inst2.components.lxautocollectitems:SetItems()
@@ -152,6 +154,19 @@ local function changeChest(inst) -- ACI == LXautocollectitems
 			collectChest2Item(inst2)
 		end
 
+		-- 箱子内物品被整组取出时收集物品
+		local old_take = inst.components.container.TakeActiveItemFromAllOfSlot
+		function inst.components.container:TakeActiveItemFromAllOfSlot(slot, opener)
+			old_take(self,slot, opener)
+			collectChest2Item(self.inst)
+		end
+		local old_move = inst.components.container.MoveItemFromAllOfSlot
+		function inst.components.container:MoveItemFromAllOfSlot(slot,container, opener)
+			old_move(self,slot,container, opener)
+			collectChest2Item(self.inst)
+		end
+
+		-- 箱子加载时设置收集物
 		local old_onload = inst.OnLoad
 		inst.OnLoad = function(inst2, data)
 			if old_onload ~= nil then
@@ -162,11 +177,20 @@ local function changeChest(inst) -- ACI == LXautocollectitems
 			end
 		end
 
+		-- 箱子建造时设置收集物
 		local function onChestBuild(inst)
-			--print("[master chest] onbuilt")
 			inst.components.lxautocollectitems:SetItems()
 		end
 		inst:ListenForEvent("onbuilt", onChestBuild)
+
+		-- 解决箱子敲毁时 掉落物消失的问题
+		if inst.components.workable then
+			local old_onfinish = inst.components.workable.onfinish
+			inst.components.workable:SetOnFinishCallback(function(inst2, worker)
+				inst2.components.lxautocollectitems.items = {}
+				old_onfinish(inst2, worker)
+			end)
+		end
 	end
 end
 AddPrefabPostInit("treasurechest", changeChest)
@@ -294,18 +318,3 @@ end
 AddPrefabPostInit("bearger",onbeargerCollect)
 
 -- 功能3. 打补丁
-
--- 箱子敲毁时，掉落物可能消失的问题
-local function changeChestHammer(inst)
-	if inst and inst.components and inst.components.workable then
-		local old_onfinish = inst.components.workable.onfinish
-		inst.components.workable:SetOnFinishCallback(function(inst2, worker)
-			inst2.components.lxautocollectitems.items = {}
-			old_onfinish(inst2, worker)
-		end)
-	end
-end
-AddPrefabPostInit("treasurechest", changeChestHammer)
-AddPrefabPostInit("icebox", changeChestHammer)
-AddPrefabPostInit("saltbox", changeChestHammer)
-AddPrefabPostInit("dragonflychest", changeChestHammer)
