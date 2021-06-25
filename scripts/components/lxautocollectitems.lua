@@ -196,7 +196,6 @@ local function moveToContainer(inst, item) -- inst 箱子.components.container
 	print("[moveToContainer]197")
     return item
 end
-------------------------------------------------
 
 -- 收集物品
 function LXautocollectitems:onCollectItems(item, itemname)

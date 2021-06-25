@@ -125,19 +125,85 @@ AddPrefabPostInit("minisign_drawn", MinisignAddItemname)
 ]]--
 
 -- 功能1. 设置要收集的物品
--- 给箱子添加 LXautocollectitems 这个component,并且箱子打开时设置要收集的items
-local function ContainerAddACI(inst) -- ACI == LXautocollectitems
+-- 改变箱子的部分
+local function onChestBuild(inst)
+	--print("[master chest] onbuilt")
+	inst.components.lxautocollectitems:SetItems()
+end
+
+local function changeChest(inst) -- ACI == LXautocollectitems
+	-- 给箱子添加 LXautocollectitems 这个component,并且箱子打开时设置要收集的items
 	if inst and inst.components and inst.components.container then
 		inst:AddComponent("lxautocollectitems")
 		inst:AddTag("lxautocollectitems") -- 给对应箱子添加Tag
+		--inst.components.lxautocollectitems:SetItems()
 		local old_open = inst.components.container.onopenfn
 		inst.components.container.onopenfn = function(inst2)
-			inst2.components.lxautocollectitems:SetItems()
+			--inst2.components.lxautocollectitems:SetItems()
 			old_open(inst2)
+		end
+
+		local old_onload = inst.OnLoad
+		inst.OnLoad = function(inst2, data)
+			if old_onload ~= nil then
+				old_onload(inst2, data)
+			end
+			if inst2 and inst2.components and inst2.components.lxautocollectitems then
+				inst2.components.lxautocollectitems:SetItems()
+			end
+		end
+
+		inst:ListenForEvent("onbuilt", onChestBuild)
+	end
+end
+AddPrefabPostInit("treasurechest", changeChest)
+
+-- 改变小木牌的部分（小木牌画，挖，加载，种的时候，设置箱子）
+local function changeMinisign(inst)
+	if inst.prefab == "minisign" then
+		local old_draw = inst.components.drawable.ondrawnfn
+		inst.components.drawable:SetOnDrawnFn(function(inst2, image, src, atlas, bgimage, bgatlas)
+			old_draw(inst2, image, src, atlas, bgimage, bgatlas)
+			local x, y, z = inst2.Transform:GetWorldPosition()
+			local ents = _G.TheSim:FindEntities(x, y, z, collectdist, {"lxautocollectitems"})
+			for k, v in pairs(ents) do
+				v.components.lxautocollectitems:SetItems()
+			end
+		end)
+		local old_onfinish = inst.components.workable.onfinish
+		inst.components.workable:SetOnFinishCallback(function(inst2)
+			old_onfinish(inst2)
+			local x, y, z = inst2.Transform:GetWorldPosition()
+			local ents = _G.TheSim:FindEntities(x, y, z, collectdist, {"lxautocollectitems"})
+			for k, v in pairs(ents) do
+				v.components.lxautocollectitems:SetItems()
+			end
+		end)
+		local old_onload = inst.OnLoad
+		inst.OnLoad = function(inst2, data)
+			--print("[master chest] onload")
+			old_onload(inst2, data)
+			local x, y, z = inst2.Transform:GetWorldPosition()
+			local ents = _G.TheSim:FindEntities(x, y, z, collectdist, {"lxautocollectitems"})
+			for k, v in pairs(ents) do
+				v.components.lxautocollectitems:SetItems()
+			end
+		end
+	end
+	if inst.prefab == "minisign_drawn" then
+		local old_ondeply = inst.components.deployable.ondeploy
+		inst.components.deployable.ondeploy = function(inst2,pt)
+			local x, y, z = pt:Get()
+			old_ondeply(inst,pt)
+			local ents = _G.TheSim:FindEntities(x, y, z, collectdist, {"lxautocollectitems"})
+			for k, v in pairs(ents) do
+				v.components.lxautocollectitems:SetItems()
+			end
 		end
 	end
 end
-AddPrefabPostInit("treasurechest", ContainerAddACI)
+AddPrefabPostInit("minisign", changeMinisign) -- 画 挖 世界加载
+AddPrefabPostInit("minisign_drawn", changeMinisign) -- 种
 
 
 -- 功能2. 收集物品
@@ -199,7 +265,6 @@ local function onLootdropCollect(inst)
 		return dropped
 	end
 end
---LootDropper:SpawnLootPrefab
 AddComponentPostInit("lootdropper",onLootdropCollect)
 
 -- 周期性掉落物品，收集。

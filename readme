@@ -3,6 +3,7 @@
         通过打开container来设置
         设置的内容来自附近的小木牌（使用minisign的属性_imagename）
         根据设置选项中的内容来决定是只收集一种还是好多种。
+        在世界加载时，设置收集的物品
 功能2：收集物品
         以下几种情况时触发收集物品功能
         1. 玩家丢弃（actions.lua drop）物品时 inst:ListenForEvent("dropitem", function)
