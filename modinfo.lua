@@ -9,7 +9,7 @@ local info = {
             [en] = "Smart Chest"
         },
 		description_text = {
-			[zh] = "你已经是个成熟的箱子了，要学会自己捡东西\n收集的物品由附近的（小木牌图案）决定\n（丢弃物品、战利品掉落、周期性掉落）的物品会自动进入附近的箱子（如果有对应小木牌的话）\n（打开箱子）会使这个箱子收集一次周围的物品\n箱子包括（木箱、龙蝇箱、冰箱、盐盒）\n收集物品种类可以设置一种或多种",
+			[zh] = "你已经是个成熟的箱子了，要学会自己捡东西\n收集的物品由附近的（小木牌图案）决定\n（丢弃物品、战利品掉落、周期性掉落）的物品会自动进入附近的箱子（如果有对应小木牌的话）\n（打开箱子）会使这个箱子收集一次周围的物品\n箱子包括（木箱、龙蝇箱、冰箱、盐盒）\n收集物品种类可以设置一种或多种\n\n兼容Smart Minisign和Smart Minisign [Server Only]",
             [en] = "The chest can collect items automatically\nThe items collected are determined by the nearby (picture on a small wooden card)\n(drop items, spoils drop, periodic drop) items will automatically enter the nearby box (if there is a corresponding small wooden card)\n(open the box) will make the box collect the surrounding items once\nBoxes include (wooden chest, dragon fly chest, ice box, salt box)\nOne or more kinds items collections can be set"
 		}
 	},
@@ -153,7 +153,7 @@ name = "Smart Chest"
 -- info.information.description_text[variable]
 description = info.information.description_text[variable]
 author = "little_xuuu"
-version = "2.0.4"
+version = "2.0.5"
 forumthread = ""
 api_version = 10
 all_clients_require_mod = false
