@@ -11,6 +11,8 @@ local LXautocollectitems = Class(function(self, inst)
 	self.x = nil
 	self.y = nil
 	self.z = nil
+	self.iscollectone = false
+	self.minisigndist = 1.5
 end,
 nil,
 nil)
@@ -37,13 +39,13 @@ function LXautocollectitems:SetItems()
 		self.items = {} -- 清空当前的设置
 		-- 获取周围的小木牌
 		local x, y, z = self.inst.Transform:GetWorldPosition()
-		local ents = TheSim:FindEntities(x, y, z, minisigndist, { "sign" }, { "INLIMBO"}) --包括所有木牌
+		local ents = TheSim:FindEntities(x, y, z, self.minisigndist, { "sign" }, { "INLIMBO"}) --包括所有木牌
 		--print("#minisign = " .. #ents)
 		-- 筛选画好的,并填入items
 		for i, v in ipairs(ents) do
 			if v and v.prefab == "minisign" and v.components and v.components.drawable and v.components.drawable:GetImage() ~= nil then
 				table.insert(self.items, v._imagename:value())
-				if iscollectone == 1 then
+				if self.iscollectone == 1 then
 					break
 				end
 			end

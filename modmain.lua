@@ -9,6 +9,8 @@ PrefabFiles = {
 local t0 = GetModConfigData("collect_items_dist0")
 local t1 = GetModConfigData("collect_items_dist1")
 local collectdist = 10*t0 + t1
+local minisigndist = GetModConfigData("minisign_dist")
+local iscollectone = GetModConfigData("iscollectone")
 local istreasurechest = GetModConfigData("treasurechest")
 local isdragonflychest = GetModConfigData("dragonflychest")
 local isicebox = GetModConfigData("icebox")
@@ -36,14 +38,14 @@ if IsServer then
 					print("[showInfo] minisign.itemname == nil")
 				end
 			end
-			if target.prefab == "treasurechest" then
-				print("[showInfo] treasurechest.items : start")
+			if target.prefab == "treasurechest" or target.prefab == "dragonflychest" or target.prefab == "icebox" or target.prefab == "saltbox" then
+				print("[showInfo] " .. target.prefab .. ".items : start")
 				if target and target.components.lxautocollectitems then
 					for key, value in pairs(target.components.lxautocollectitems.items) do
 						print(value)
 					end
 				end
-				print("[showInfo] treasurechest.items : end")
+				print("[showInfo] " .. target.prefab .. ".items : end")
 			end
 		end
 
@@ -157,6 +159,8 @@ if IsServer then
 			-- 添加 lxautocollectitems 组件，和tag
 			inst:AddComponent("lxautocollectitems")
 			inst:AddTag("lxautocollectitems") -- 给对应箱子添加Tag
+			inst.components.lxautocollectitems.minisigndist = minisigndist
+			inst.components.lxautocollectitems.iscollectone = iscollectone
 
 			-- 箱子打开时收集物品
 			if is_collect_open == 1 then
@@ -319,21 +323,25 @@ if IsServer then
 		end
 		AddComponentPostInit("lootdropper",onLootdropCollect)
 
-		-- 燃烧的灰 收集
+		--[[燃烧的灰 收集
 		local function onBurntCollect(inst)
-			local old_SetOnBurntFn = inst.SetOnBurntFn
-			function inst:SetOnBurntFn(fn)
-				self.onburnt = function(inst2)
+			print("[onBurntCollect]")
+			local old_onburnt = inst.onburnt
+			inst.onburnt = function(inst2)
+				if inst2 then
 					local x, y, z = inst2.Transform:GetWorldPosition()
-					fn(inst2)
+					print("[onburnt] x y z = " .. x .. " ".. y .. " " .. z)
+					old_onburnt(inst2)
 					local ents = _G.TheSim:FindEntities(x, y, z, collectdist, {"lxautocollectitems"}, {"burnt"})
 					for k, v in pairs(ents) do
 						collectChest2Item(v)
 					end
+				else
+					old_onburnt(inst2)
 				end
 			end
 		end
-		AddComponentPostInit("burnable",onBurntCollect)
+		AddComponentPostInit("burnable",onBurntCollect)]]
 	end
 
 	-- 周期性掉落物品，收集。

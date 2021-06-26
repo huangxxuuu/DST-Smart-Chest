@@ -140,6 +140,12 @@ local info = {
 				[en] = "such as the monster meat, fule, wings dropped by glommer's death"
 			}
 		},
+		ash = {
+			label = {
+				[zh] = "是否收集燃烧产生的灰",
+				[en] = "is collect ash when item burnt?"
+			},
+		},
 	}
 }
 
@@ -147,7 +153,7 @@ name = "Smart Chest"
 -- info.information.description_text[variable]
 description = info.information.description_text[variable]
 author = "little_xuuu"
-version = "2.0.1"
+version = "2.0.2"
 forumthread = ""
 api_version = 10
 all_clients_require_mod = false
@@ -156,8 +162,9 @@ dst_compatible = true
 icon_atlas = "modicon.xml"
 icon = "modicon.tex"
 folder_name = folder_name or "workshop-"
---[[if not folder_name:find("workshop-") then
-  name = " "..name.." - Local"
+--[[local isLocal = false
+if not folder_name:find("workshop-") then
+  isLocal = true
 end]]--
 
 -- Refer to other mod designs 增加标题
@@ -322,4 +329,18 @@ configuration_options =
 		},
 		1
 	),
+	--[[AddConfig("is_collect_ash", 
+		info.collectTime.ash.label[variable],
+		nil,
+		{
+			{description = info.collectTime.yes[variable], data = 1},
+			{description = info.collectTime.no[variable], data = 0},
+		},
+		1
+	),]]
 }
+
+--[[
+if isLocal then
+	table.insert(configuration_options, 1, ModOptions("本地mod"))
+end]]--
