@@ -318,6 +318,22 @@ if IsServer then
 			end
 		end
 		AddComponentPostInit("lootdropper",onLootdropCollect)
+
+		-- 燃烧的灰 收集
+		local function onBurntCollect(inst)
+			local old_SetOnBurntFn = inst.SetOnBurntFn
+			function inst:SetOnBurntFn(fn)
+				self.onburnt = function(inst2)
+					local x, y, z = inst2.Transform:GetWorldPosition()
+					fn(inst2)
+					local ents = _G.TheSim:FindEntities(x, y, z, collectdist, {"lxautocollectitems"}, {"burnt"})
+					for k, v in pairs(ents) do
+						collectChest2Item(v)
+					end
+				end
+			end
+		end
+		AddComponentPostInit("burnable",onBurntCollect)
 	end
 
 	-- 周期性掉落物品，收集。
