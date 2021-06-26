@@ -153,7 +153,7 @@ name = "Smart Chest"
 -- info.information.description_text[variable]
 description = info.information.description_text[variable]
 author = "little_xuuu"
-version = "2.0.2"
+version = "2.0.4"
 forumthread = ""
 api_version = 10
 all_clients_require_mod = false

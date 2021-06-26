@@ -3,6 +3,7 @@ local name = "Smart Chest"
 local modname = KnownModIndex:GetModActualName(name)
 local minisigndist = GetModConfigData("minisign_dist", modname)
 local iscollectone = GetModConfigData("iscollectone", modname)
+local showbundle  = TUNING.HUAMINISIGN_BUNDLE
 
 local LXautocollectitems = Class(function(self, inst)
 	self.inst = inst
@@ -13,6 +14,10 @@ local LXautocollectitems = Class(function(self, inst)
 	self.z = nil
 	self.iscollectone = false
 	self.minisigndist = 1.5
+	inst:ListenForEvent("onclose", function()
+		inst:DoTaskInTime(0.1,function (inst2) self:SetItems()	end)
+	end)
+	inst:DoTaskInTime(0.15, function (inst2) self:SetItems()	end)
 end,
 nil,
 nil)
@@ -36,6 +41,40 @@ local function getMinisign(inst){
 function LXautocollectitems:SetItems()
 	--print("[LXautocollectitems]SetItems enter")
 	if self.inst and self.inst.components and self.inst.components.container then
+		if showbundle then
+			--print("showbundle true")
+		else
+			--print("showbundle false")
+		end
+		-- 兼容smart minisign
+		if self.inst.components.smart_minisign and self.inst.components.smart_minisign.sign then
+			local container = self.inst.components.container
+			for i = 1, container:GetNumSlots() do
+				local item = container:GetItemInSlot(i)
+				local tname = item ~= nil and (item.drawnameoverride or item:GetBasicDisplayName()) or ""
+				if item ~= nil and item.replica.inventoryitem ~= nil  then
+					--for bundle
+					if showbundle and item.components.unwrappable ~= nil and item.components.unwrappable.itemdata then
+						for i, v in ipairs(item.components.unwrappable.itemdata) do
+							if  v  then
+								local copy = SpawnPrefab(v.prefab)
+								if copy then 
+									tname = copy ~= nil and (copy.drawnameoverride or copy:GetBasicDisplayName()) or ""
+									copy:Remove()
+									break
+								end
+							end
+						end
+					end
+					self.inst.components.smart_minisign.sign._imagename:set(tname)
+					--self.inst.collectitems = name
+					break
+				end
+				if i == container:GetNumSlots() and item == nil then
+					self.inst.components.smart_minisign.sign._imagename:set("")
+				end
+			end
+		end
 		self.items = {} -- 清空当前的设置
 		-- 获取周围的小木牌
 		local x, y, z = self.inst.Transform:GetWorldPosition()
@@ -43,13 +82,15 @@ function LXautocollectitems:SetItems()
 		--print("#minisign = " .. #ents)
 		-- 筛选画好的,并填入items
 		for i, v in ipairs(ents) do
-			if v and v.prefab == "minisign" and v.components and v.components.drawable and v.components.drawable:GetImage() ~= nil then
+			if v and v.prefab == "minisign" and v._imagename ~= nil and v._imagename ~= "" then
 				table.insert(self.items, v._imagename:value())
 				if self.iscollectone == 1 then
 					break
 				end
 			end
 		end
+		
+
 		if #self.items > 0 then
 			self.iscollect = true
 		else
@@ -84,15 +125,15 @@ local function moveToContainer(inst, item) -- inst 箱子.components.container
 	local src_pos = nil
 	local drop_on_fail = nil
 	if item == nil then
-		print("[moveToContainer]85")
+		--print("[moveToContainer]85")
         return item
     elseif item.components.inventoryitem ~= nil and inst:CanTakeItemInSlot(item, slot) then
         if slot == nil then
             slot = inst:GetSpecificSlotForItem(item)
             if slot ~= nil then
-                print("[moveToContainer]88 slot = " .. slot)
+                --print("[moveToContainer]88 slot = " .. slot)
             else
-                print("[moveToContainer]88 slot = nil")
+                --print("[moveToContainer]88 slot = nil")
             end
         end
 
@@ -110,7 +151,7 @@ local function moveToContainer(inst, item) -- inst 箱子.components.container
 
                     item = other_item.components.stackable:Put(item, src_pos)
                     if item == nil then
-						print("[moveToContainer]110")
+						--print("[moveToContainer]110")
                         return item
                     end
 
@@ -119,9 +160,9 @@ local function moveToContainer(inst, item) -- inst 箱子.components.container
             end
 
             if slot ~= nil then
-                print("[moveToContainer]118 slot = " .. slot)
+                --print("[moveToContainer]118 slot = " .. slot)
             else
-                print("[moveToContainer]118 slot = nil")
+                --print("[moveToContainer]118 slot = nil")
             end
             if slot == nil then
                 for k = 1, inst.numslots do
@@ -131,10 +172,10 @@ local function moveToContainer(inst, item) -- inst 箱子.components.container
                             inst.inst.components.inventoryitem.owner:PushEvent("gotnewitem", { item = item, slot = k })
                         end
 
-                        print("[moveToContainer] other_item.prefab = " .. other_item.prefab)
+                        --print("[moveToContainer] other_item.prefab = " .. other_item.prefab)
                         item = other_item.components.stackable:Put(item, src_pos)
                         if item == nil then
-							print("[moveToContainer]133")
+							--print("[moveToContainer]133")
                             return item
                         end
                     end
@@ -165,14 +206,14 @@ local function moveToContainer(inst, item) -- inst 箱子.components.container
 					t = item.components.stackable:Get()
 					item.components.stackable:SetStackSize(item.components.stackable.stacksize - 1)
 				else
-					print("[moveToContainer]163")
+					--print("[moveToContainer]163")
 					return nil
 				end
 				--item = item.components.stackable:Get()
                 inst.slots[in_slot] = t
                 t.components.inventoryitem:OnPutInInventory(inst.inst)
                 inst.inst:PushEvent("itemget", { slot = in_slot, item = t, src_pos = src_pos, })
-				print("[moveToContainer]169")
+				--print("[moveToContainer]169")
                 return item
             end
 
@@ -183,7 +224,7 @@ local function moveToContainer(inst, item) -- inst 箱子.components.container
             if not inst.ignoresound and inst.inst.components.inventoryitem ~= nil and inst.inst.components.inventoryitem.owner ~= nil then
                 inst.inst.components.inventoryitem.owner:PushEvent("gotnewitem", { item = item, slot = in_slot })
             end
-			print("[moveToContainer]179")
+			--print("[moveToContainer]179")
             return nil
         end
     end
@@ -195,22 +236,22 @@ local function moveToContainer(inst, item) -- inst 箱子.components.container
             item.components.inventoryitem:OnDropped(true)
         end
     end]]--
-	print("[moveToContainer]197")
+	--print("[moveToContainer]197")
     return item
 end
 
 -- 收集物品
 function LXautocollectitems:onCollectItems(item, itemname)
-	print("[onCollectItems] enter")
+	--print("[onCollectItems] enter")
 	if item == nil then -- 判断是否有剩余
-		print("item == nil")
+		--print("item == nil")
         return nil
     end
 	if (self.inst.components and self.inst.components.burnable ~= nil and self.inst.components.burnable:IsBurning()) or self.inst:HasTag("burnt") then -- 正在燃烧和燃烧结束不能收集
 		return item
 	end
 	if isCanCollect(self.items, itemname) then --判断可以收集
-		print("isCanCollect OK")
+		--print("isCanCollect OK")
 		-- 因为这个现成的GiveItem没有返回值，所以要重写
 		-- self.inst.components.container:GiveItem(item)
 		local snumb
@@ -220,9 +261,9 @@ function LXautocollectitems:onCollectItems(item, itemname)
 		local x, y, z = item.Transform:GetWorldPosition()
 		item = moveToContainer(self.inst.components.container, item)
 		if item and item.components and item.components.stackable then
-			print("" .. item.prefab .. " number is " .. item.components.stackable.stacksize)
+			--print("" .. item.prefab .. " number is " .. item.components.stackable.stacksize)
 		else
-			print("item = 0")
+			--print("item = 0")
 		end
 		if item == nil then
 			local collectanim = SpawnPrefab("sand_puff") --消失的动画
@@ -236,7 +277,7 @@ function LXautocollectitems:onCollectItems(item, itemname)
 			end
 		end
 	end
-	print("[onCollectItems] exit")
+	--print("[onCollectItems] exit")
 	return item
 end
 

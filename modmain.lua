@@ -28,6 +28,7 @@ local IsServer = TheNet:GetIsServer() or TheNet:IsDedicated()
 if IsServer then
 
 	-- 显示信息
+	--[[
 	local function showInfo()
 		local target = _G.TheInput:GetWorldEntityUnderMouse()
 		if target ~= nil then
@@ -50,93 +51,7 @@ if IsServer then
 		end
 
 	end
-	_G.TheInput:AddKeyUpHandler(118, showInfo)
-
-	-- 使用minisign的属性_imagename（所以这里就不需要修改了）
-	--[[
-	local function MinisignAddItemname(inst)
-		inst.itemname = nil
-		if inst and inst.components and inst.components.drawable then
-			--print("change ondrawnfn")
-			local old_draw = inst.components.drawable.ondrawnfn
-			inst.components.drawable:SetOnDrawnFn(function(inst2, image, src, atlas, bgimage, bgatlas)
-				--print("[master chest] ondraw")
-				if src ~= nil then
-					--获取src的prefab名称
-					inst2.itemname = src.prefab
-				end
-				old_draw(inst2, image, src, atlas, bgimage, bgatlas)
-			end)
-		end
-
-		--修改dig_up
-		if inst and inst.components and inst.components.workable then
-			--print("change dig_up")
-			--local old_onfinish = inst.components.workable.onfinish
-			inst.components.workable:SetOnFinishCallback(function(inst2)
-				local image = inst2.components.drawable:GetImage()
-				if image ~= nil then
-					local item = inst2.components.lootdropper:SpawnLootPrefab("minisign_drawn", nil, inst2.linked_skinname_drawn, inst2.skin_id )
-					item.components.drawable:OnDrawn(image, nil, inst2.components.drawable:GetAtlas(), inst2.components.drawable:GetBGImage(), inst2.components.drawable:GetBGAtlas())
-					item._imagename:set(inst2._imagename:value())
-					if inst2.itemname then
-						--print("[dig_ip] inst.itemname:" .. inst2.itemname)
-						item.itemname = inst2.itemname
-					end
-				else
-					inst2.components.lootdropper:SpawnLootPrefab("minisign_item", nil, inst2.linked_skinname, inst2.skin_id )
-				end
-				inst2:Remove()
-			end)
-		end
-
-		--修改ondeploy
-		if inst and inst.components and inst.components.deployable then
-			--print("change ondeploy")
-			inst.components.deployable.ondeploy = function(inst2, pt)
-				local ent = _G.SpawnPrefab("minisign", inst2.linked_skinname, inst2.skin_id )
-
-				if inst2.components.stackable ~= nil then
-					inst2.components.stackable:Get():Remove()
-				else
-					ent.components.drawable:OnDrawn(inst2.components.drawable:GetImage(), nil, inst2.components.drawable:GetAtlas(), inst2.components.drawable:GetBGImage(), inst2.components.drawable:GetBGAtlas())
-					ent._imagename:set(inst2._imagename:value())
-					if inst2.itemname then
-						--print("[ondeply] inst.itemname:" .. inst2.itemname)
-						ent.itemname = inst2.itemname
-					end
-					inst2:Remove()
-				end
-
-				ent.Transform:SetPosition(pt:Get())
-				ent.SoundEmitter:PlaySound("dontstarve/common/sign_craft")
-			end
-		end
-
-		--保存和加载
-		if inst.OnSave ~= nil then
-			local old_OnSave = inst.OnSave
-			inst.OnSave = function(inst2, data)
-				data.itemname = inst2.itemname
-				old_OnSave(inst2, data)
-			end
-		end
-		if inst.OnLoad ~= nil then
-			local old_OnLoad = inst.OnLoad
-			--print("old_OnLoad = " .. old_OnLoad)
-			inst.OnLoad = function(inst2, data)
-				if data.itemname then
-					inst2.itemname = data.itemname
-				end
-				old_OnLoad(inst2, data)
-			end
-		end
-
-	end
-	AddPrefabPostInit("minisign", MinisignAddItemname)
-	AddPrefabPostInit("minisign_item", MinisignAddItemname)
-	AddPrefabPostInit("minisign_drawn", MinisignAddItemname)
-	]]--
+	_G.TheInput:AddKeyUpHandler(118, showInfo)]]--
 
 	-- 功能1. 设置要收集的物品
 	-- 箱子主动收集附近的物品
@@ -278,7 +193,7 @@ if IsServer then
 	local function collectItem2Chest(dropped)
 		if dropped ~= nil then
 			-- 搜索周围的箱子
-			print("[collect] search Tag lxautocollectitems")
+			--print("[collect] search Tag lxautocollectitems")
 			local x, y, z = dropped.Transform:GetWorldPosition()
 			local ents = _G.TheSim:FindEntities(x, y, z, collectdist, {"lxautocollectitems"}, {"burnt"})
 			local name = dropped.drawnameoverride or dropped:GetBasicDisplayName()
@@ -299,10 +214,10 @@ if IsServer then
 		local function onDropCollect(inst)
 			local old_DropItem = inst.DropItem
 			function inst:DropItem(item, wholestack, randomdir, pos)
-				print("[DropItem] enter")
+				--print("[DropItem] enter")
 				local dropped = old_DropItem(self, item, wholestack, randomdir, pos)
 				collectItem2Chest(dropped)
-				print("[DropItem] exit")
+				--print("[DropItem] exit")
 				return dropped
 			end
 		end
@@ -314,10 +229,10 @@ if IsServer then
 		local function onLootdropCollect(inst)
 			local old_SpawnLootPrefab = inst.SpawnLootPrefab
 			function inst:SpawnLootPrefab(lootprefab, pt, linked_skinname, skin_id, userid)
-				print("[SpawnLootPrefab] enter")
+				--print("[SpawnLootPrefab] enter")
 				local dropped = old_SpawnLootPrefab(self, lootprefab, pt, linked_skinname, skin_id, userid)
 				collectItem2Chest(dropped)
-				print("[SpawnLootPrefab] exit")
+				--print("[SpawnLootPrefab] exit")
 				return dropped
 			end
 		end
