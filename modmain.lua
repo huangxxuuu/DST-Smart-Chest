@@ -193,6 +193,7 @@ if IsServer then
 	local function collectItem2Chest(dropped)
 		if dropped ~= nil then
 			-- 搜索周围的箱子
+			--print("[collectItem2Chest] prefab = " .. dropped.prefab)
 			--print("[collect] search Tag lxautocollectitems")
 			local x, y, z = dropped.Transform:GetWorldPosition()
 			local ents = _G.TheSim:FindEntities(x, y, z, collectdist, {"lxautocollectitems"}, {"burnt"})
@@ -262,9 +263,25 @@ if IsServer then
 	-- 周期性掉落物品，收集。
 	if is_collect_periodicspawner == 1 then
 		local function onPerioddropCOllect(inst)
-			--local old_setonspawnfn = inst.SetOnSpawnFn
+			local old_onspawn = inst.onspawn
+			inst.onspawn = function(inst1, inst2)
+				--[[if inst2 ~= nil then
+					print("[onspawn old] prefab = " .. inst2.prefab)
+				else
+					print("[onspawn old]")
+				end]]--
+				if old_onspawn ~= nil then
+					old_onspawn(inst1, inst2)
+				end
+				collectItem2Chest(inst2)
+			end
 			function inst:SetOnSpawnFn(fn)
-				inst.onspawn = function(inst1, inst2)
+				self.onspawn = function(inst1, inst2)
+					--[[if inst2 ~= nil then
+						print("[onspawn new] prefab = " .. inst2.prefab)
+					else
+						print("[onspawn new]")
+					end]]--
 					fn(inst1, inst2)
 					collectItem2Chest(inst2)
 				end
