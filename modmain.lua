@@ -28,10 +28,12 @@ local IsServer = TheNet:GetIsServer() or TheNet:IsDedicated()
 if IsServer then
 
 	-- 显示信息
-	--[[
 	local function showInfo()
 		local target = _G.TheInput:GetWorldEntityUnderMouse()
 		if target ~= nil then
+			if target:HasTag("preparedfood") then
+				print("" .. target.prefab .. " has tag preparedfood")
+			end
 			if target.prefab == "minisign" or target.prefab == "minisign_drawn" then
 				if target._imagename then
 					print("[showInfo] minisign._imagename:" .. target._imagename:value())
@@ -51,7 +53,7 @@ if IsServer then
 		end
 
 	end
-	_G.TheInput:AddKeyUpHandler(118, showInfo)]]--
+	_G.TheInput:AddKeyUpHandler(118, showInfo)
 
 	-- 功能1. 设置要收集的物品
 	-- 箱子主动收集附近的物品
